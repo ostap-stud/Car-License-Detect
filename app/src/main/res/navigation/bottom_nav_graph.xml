@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottom_nav_graph"
+    app:startDestination="@+id/navigation_home">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.github.ostap_stud.ui.home.HomeListFragment"
+        android:label="@string/title_home"
+        tools:layout="@layout/fragment_home_list" >
+        <action
+            android:id="@+id/action_navigation_home_to_navigation_live"
+            app:destination="@id/navigation_live" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_live"
+        android:name="com.github.ostap_stud.ui.live.LiveCameraFragment"
+        android:label="@string/title_live"
+        tools:layout="@layout/fragment_live_camera" />
+
+</navigation>
