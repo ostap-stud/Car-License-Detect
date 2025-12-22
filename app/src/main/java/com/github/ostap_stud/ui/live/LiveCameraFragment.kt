@@ -42,7 +42,6 @@ class LiveCameraFragment : Fragment(), OnObjectsDetectListener {
 
     private lateinit var carInterpreter: Interpreter
     private lateinit var licInterpreter: Interpreter
-    private lateinit var ocr: Interpreter
     private lateinit var licNumRecognizer: LicenseNumberRecognizer
 
     private lateinit var cameraExecutor: ExecutorService
@@ -70,10 +69,6 @@ class LiveCameraFragment : Fragment(), OnObjectsDetectListener {
         licInterpreter = CarLicenseImageAnalyzer.createInterpreter(
             requireContext(),
             CarLicenseImageAnalyzer.LICENSE_MODEL_FILENAME
-        )
-        ocr = CarLicenseImageAnalyzer.createInterpreter(
-            requireContext(),
-            "EasyOCR_EasyOCRRecognizer_float.tflite"
         )
         licNumRecognizer = LicenseNumberRecognizer()
     }
@@ -107,18 +102,10 @@ class LiveCameraFragment : Fragment(), OnObjectsDetectListener {
             val previewCase = Preview.Builder()
                 .build()
 
-//            val imageAnalyzer = ImageAnalysis.Builder()
-//                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-//                .build()
-//                .also {
-//                    it.setAnalyzer(cameraExecutor, CarLicenseImageAnalyzer())
-//                }
-
             val imageAnalyzer = CarLicenseImageAnalyzer(
-                carInterpreter = carInterpreter,
-                licInterpreter = licInterpreter,
-                licNumRecognizer = licNumRecognizer,
-                ocr = ocr,
+                carInterpreter,
+                licInterpreter,
+                licNumRecognizer,
                 onObjectsDetectListener = this@LiveCameraFragment
             )
 

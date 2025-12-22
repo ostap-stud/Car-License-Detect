@@ -67,33 +67,6 @@ object InputPreprocessor {
         )
     }
 
-    fun preprocess(bitmap: Bitmap, inputWidth: Int = 100, inputHeight: Int = 32): ByteBuffer{
-//        val resized = Bitmap.createScaledBitmap(bitmap, inputWidth, inputHeight, true)
-
-        val scale = inputHeight / bitmap.height
-        val newW = (bitmap.width * scale).coerceAtMost(1000)
-
-        val resized = Bitmap.createScaledBitmap(bitmap, newW, inputHeight, true)
-        val output = Bitmap.createBitmap(inputWidth, inputHeight, Bitmap.Config.ARGB_8888)
-        Canvas(output).drawBitmap(resized, 0f, 0f, null)
-
-        val buffer = ByteBuffer.allocateDirect(1 * 1 * inputHeight * inputWidth * 4)
-        buffer.order(ByteOrder.nativeOrder())
-
-        for (y in 0 until inputHeight) {
-            for (x in 0 until inputWidth) {
-                val px = output.getPixel(x, y)
-                val gray = Color.red(px)
-//                val v = ((gray - 127) * 1.5 + 127).coerceIn(0.0, 255.0) / 255f
-                val v = gray / 255f
-                buffer.putFloat(v)
-            }
-        }
-
-        buffer.rewind()
-        return buffer
-    }
-
     fun rotateBitmap(source: Bitmap, degree: Float): Bitmap{
         val rotationMatrix = Matrix()
         rotationMatrix.postRotate(degree)

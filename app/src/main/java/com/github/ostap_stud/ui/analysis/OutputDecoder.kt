@@ -53,25 +53,4 @@ object OutputDecoder {
         return detections
     }
 
-    fun ctcDecode(output: Array<Array<FloatArray>>): String {
-        val sb = StringBuilder()
-        var last = -1
-
-        for (t in output[0]) {
-            val idx = t.indices.maxBy { t[it] }
-            if (idx != last && idx != BLANK) {
-                sb.append(charMap[idx])
-            }
-            last = idx
-        }
-
-        return sb.toString()
-    }
-
-    private const val BLANK = 0
-//    private val charMap: CharArray = mutableListOf('_')
-//        .apply { addAll(('0'..'9') + ('A'..'Z')) }
-//        .toCharArray()
-    private val charMap: CharArray = " 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#\$%&'()*+,-./:;<=>?@[\\]^_`{|}~".toCharArray()
-
 }

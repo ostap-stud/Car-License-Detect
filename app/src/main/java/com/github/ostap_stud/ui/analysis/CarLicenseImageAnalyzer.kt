@@ -1,7 +1,6 @@
 package com.github.ostap_stud.ui.analysis
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
@@ -10,24 +9,20 @@ import androidx.camera.core.ImageProxy
 import com.github.ostap_stud.ui.live.OnObjectsDetectListener
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil
-import org.tensorflow.lite.support.common.ops.NormalizeOp
-import org.tensorflow.lite.support.image.ImageProcessor
-import org.tensorflow.lite.support.image.ops.ResizeOp
 
 class CarLicenseImageAnalyzer(
     private val carInterpreter: Interpreter,
     private val licInterpreter: Interpreter,
-    private val ocr: Interpreter,
     private val licNumRecognizer: LicenseNumberRecognizer,
     private val inputSize: Int = 640,
     private val confThreshold: Float = 0.4f,
     private val onObjectsDetectListener: OnObjectsDetectListener
 ) : ImageAnalysis.Analyzer{
 
-    private val imageProcessor = ImageProcessor.Builder()
+    /*private val imageProcessor = ImageProcessor.Builder()
         .add(ResizeOp(640, 640, ResizeOp.ResizeMethod.BILINEAR))
         .add(NormalizeOp(0f, 255f))
-        .build()
+        .build()*/
 
     /*@OptIn(ExperimentalGetImage::class)
     override fun analyze(image: ImageProxy) {
@@ -75,33 +70,10 @@ class CarLicenseImageAnalyzer(
         Log.d(TAG, "Found CARs: $cars")
         Log.d(TAG, "Found LICENSES: $plates")
 
-        Log.d("ROSETTA", ocr.getInputTensor(0).shape().toTypedArray().contentDeepToString())
-        Log.d("ROSETTA", ocr.getOutputTensor(0).shape().toTypedArray().contentDeepToString())
-
-        val licenseDetections = plates.map { plate ->
-            val plateCropped = Bitmap.createBitmap(
-                bmp, plate.x1.toInt(), plate.y1.toInt(),
-                (plate.x2 - plate.x1).toInt(), (plate.y2 - plate.y1).toInt()
-            )
-//            val input = InputPreprocessor.preprocess(plateCropped, 100, 32)
-//            val output = Array(1) { Array(26) { FloatArray(37) } }
-
-            val input = InputPreprocessor.preprocess(plateCropped, 1000, 64)
-            val output = Array(1) { Array(249) { FloatArray(97) } }
-
-            ocr.run(input, output)
-            val numberRecognized = OutputDecoder.ctcDecode(output)
-            LicenseDetection(plate.x1, plate.y1, plate.x2, plate.y2, plate.score, plate.cls, numberRecognized)
-        }
-
-
-
-        /*val licenseDetections = licNumRecognizer.process(bmp, plates){ licDetection, numRecognized ->
-            licDetection.numberText = numRecognized
-        }*/
+        val licDetections = licNumRecognizer.process(bmp, plates)
 
         onObjectsDetectListener.onObjectsDetected(
-            cars, licenseDetections,
+            cars, licDetections,
             prep.imageW.toFloat(), prep.imageH.toFloat()
         )
 
