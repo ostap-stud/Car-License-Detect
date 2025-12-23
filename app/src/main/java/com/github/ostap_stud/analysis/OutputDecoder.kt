@@ -1,4 +1,4 @@
-package com.github.ostap_stud.ui.analysis
+package com.github.ostap_stud.analysis
 
 object OutputDecoder {
 
@@ -45,7 +45,7 @@ object OutputDecoder {
 
             if (bestScore >= confThresh) {
                 detections.add(
-                    Detection(x1, y1, x2, y2, bestScore, CarLicenseImageAnalyzer.LABELS[bestClass] ?: "Nothing")
+                    Detection(x1, y1, x2, y2, bestScore, CarLicenseDetector.LABELS[bestClass] ?: "Nothing")
                 )
             }
         }

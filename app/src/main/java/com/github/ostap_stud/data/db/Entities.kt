@@ -4,12 +4,14 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import java.util.Date
 
 @Entity
 data class Image(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val imagePath: String
+    val imagePath: String,
+    val createdAt: Date
 )
 
 data class ImageDetection(
@@ -18,11 +20,11 @@ data class ImageDetection(
         parentColumn = "id",
         entityColumn = "imageId"
     )
-    val detections: List<Detection>
+    val detectionEntities: List<DetectionEntity>
 )
 
 @Entity
-data class Detection(
+data class DetectionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val imageId: Long?,

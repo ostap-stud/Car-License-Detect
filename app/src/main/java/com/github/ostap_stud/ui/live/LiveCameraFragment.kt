@@ -18,12 +18,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.github.ostap_stud.analysis.CarLicenseImageAnalyzer
+import com.github.ostap_stud.analysis.Detection
+import com.github.ostap_stud.analysis.LicenseDetection
 import com.github.ostap_stud.databinding.FragmentLiveCameraBinding
-import com.github.ostap_stud.ui.analysis.CarLicenseImageAnalyzer
-import com.github.ostap_stud.ui.analysis.Detection
-import com.github.ostap_stud.ui.analysis.LicenseDetection
-import com.github.ostap_stud.ui.analysis.LicenseNumberRecognizer
-import org.tensorflow.lite.Interpreter
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -39,10 +37,6 @@ interface OnObjectsDetectListener{
 class LiveCameraFragment : Fragment(), OnObjectsDetectListener {
 
     private lateinit var binding: FragmentLiveCameraBinding
-
-    private lateinit var carInterpreter: Interpreter
-    private lateinit var licInterpreter: Interpreter
-    private lateinit var licNumRecognizer: LicenseNumberRecognizer
 
     private lateinit var cameraExecutor: ExecutorService
     private val viewModel: LiveCameraViewModel by viewModels()
@@ -62,15 +56,6 @@ class LiveCameraFragment : Fragment(), OnObjectsDetectListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         cameraExecutor = Executors.newSingleThreadExecutor()
-        carInterpreter = CarLicenseImageAnalyzer.createInterpreter(
-            requireContext(),
-            CarLicenseImageAnalyzer.CAR_MODEL_FILENAME
-        )
-        licInterpreter = CarLicenseImageAnalyzer.createInterpreter(
-            requireContext(),
-            CarLicenseImageAnalyzer.LICENSE_MODEL_FILENAME
-        )
-        licNumRecognizer = LicenseNumberRecognizer()
     }
 
     override fun onCreateView(
@@ -103,16 +88,8 @@ class LiveCameraFragment : Fragment(), OnObjectsDetectListener {
                 .build()
 
             val imageAnalyzer = CarLicenseImageAnalyzer(
-                carInterpreter,
-                licInterpreter,
-                licNumRecognizer,
                 onObjectsDetectListener = this@LiveCameraFragment
             )
-
-            Log.d("LiveFragment", "carInterpreter Input Shape: ${carInterpreter.getInputTensor(0).shape().contentToString()}")
-            Log.d("LiveFragment", "carInterpreter Output Shape: ${carInterpreter.getOutputTensor(0).shape().contentToString()}")
-            Log.d("LiveFragment", "licInterpreter Input Shape: ${licInterpreter.getInputTensor(0).shape().contentToString()}")
-            Log.d("LiveFragment", "licInterpreter Output Shape: ${licInterpreter.getOutputTensor(0).shape().contentToString()}")
 
             val imageAnalysis = ImageAnalysis.Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)

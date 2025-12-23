@@ -1,4 +1,4 @@
-package com.github.ostap_stud.ui.analysis
+package com.github.ostap_stud.analysis
 
 open class Detection(
     open val x1: Float,
@@ -15,7 +15,7 @@ open class Detection(
         y2: Float = this.y2,
         score: Float = this.score,
         cls: String = this.cls
-    ): Detection{
+    ): Detection {
         return Detection(x1 = x1, y1 = y1, x2 = x2, y2 = y2, score = score, cls = cls)
     }
 }

@@ -1,4 +1,4 @@
-package com.github.ostap_stud.ui.analysis
+package com.github.ostap_stud.analysis
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

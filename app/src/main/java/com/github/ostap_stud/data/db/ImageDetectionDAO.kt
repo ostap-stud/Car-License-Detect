@@ -21,12 +21,12 @@ interface ImageDetectionDAO {
     suspend fun insertImage(image: Image): Long
 
     @Insert
-    suspend fun insertDetections(detections: List<Detection>)
+    suspend fun insertDetections(detectionEntities: List<DetectionEntity>)
 
     @Transaction
-    suspend fun insertImageAndDetections(image: Image, detections: List<Detection>){
+    suspend fun insertImageAndDetections(image: Image, detectionEntities: List<DetectionEntity>){
         val insertedImageId = insertImage(image)
-        val imageDetections = detections.map { det ->
+        val imageDetections = detectionEntities.map { det ->
             det.copy(imageId = insertedImageId)
         }
         insertDetections(imageDetections)

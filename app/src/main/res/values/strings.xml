@@ -4,4 +4,7 @@
     <string name="title_live">Live</string>
     <string name="pick_image_and_perform_car_license_analysis">Pick image and perform Car-License Analysis</string>
     <string name="no_detections_present">No detections present</string>
+    <string name="here_has_to_be_the_file_name_date">Here has to be the file name (date)</string>
+    <string name="cars_0">Cars: 0</string>
+    <string name="licenses_0">Licenses: 0</string>
 </resources>

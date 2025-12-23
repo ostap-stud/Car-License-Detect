@@ -7,8 +7,8 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
-import com.github.ostap_stud.ui.analysis.Detection
-import com.github.ostap_stud.ui.analysis.LicenseDetection
+import com.github.ostap_stud.analysis.Detection
+import com.github.ostap_stud.analysis.LicenseDetection
 import java.util.Locale
 
 class DetectionOverlayView @JvmOverloads constructor(
