@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -15,6 +16,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schema")
+        }
     }
 
     androidResources {
@@ -71,11 +76,12 @@ dependencies {
     implementation (libs.androidx.camera.video)
     // If you want to additionally use the CameraX View class
     implementation (libs.androidx.camera.view)
-    // ML Kit Object Detection
-    implementation(libs.androidx.camera.mlkit.vision) // useless for Custom Object Detection models (like YOLO)
     // ML Kit Text Recognition (only Latin)
     implementation(libs.mlkit.text.recognition)
-//    implementation(libs.tensorflow.lite.select.tf.ops)  // maybe will help to use KerasOCR
+    // Room
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
+    implementation(libs.room.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

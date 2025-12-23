@@ -4,35 +4,59 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.github.ostap_stud.data.ImageDetectionRepository
+import com.github.ostap_stud.data.db.ApplicationDatabase
 import com.github.ostap_stud.databinding.FragmentHomeListBinding
 
 class HomeListFragment : Fragment() {
 
-    private var _binding: FragmentHomeListBinding? = null
-    private val binding get() = _binding!!
+    private lateinit var binding: FragmentHomeListBinding
 
-    private val viewModel: HomeListViewModel by viewModels()
+    private val viewModel: HomeListViewModel by viewModels {
+        HomeListViewModelFactory(
+            ImageDetectionRepository(
+                ApplicationDatabase.getDatabase(requireContext()).imageDetectionDao()
+            )
+        )
+    }
+    private lateinit var adapter: ImageDetectionListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentHomeListBinding.inflate(inflater, container, false)
-        val root: View = binding.root
+        binding = FragmentHomeListBinding.inflate(inflater, container, false)
 
-        val textView: TextView = binding.tvHome
-        viewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+        adapter = ImageDetectionListAdapter(
+            viewModel.imageDetectionList.value ?: emptyList()
+        )
+
+        binding.apply {
+            rvImageDetections.layoutManager = LinearLayoutManager(requireContext())
+            rvImageDetections.adapter = adapter
         }
-        return root
+
+        checkListEmptiness()
+        return binding.root
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel.imageDetectionList.observe(viewLifecycleOwner) {
+            adapter.submitData(it)
+            checkListEmptiness()
+        }
+    }
+
+    private fun checkListEmptiness(){
+        binding.tvEmpty.visibility = if (adapter.itemCount == 0){
+            View.VISIBLE
+        } else{
+            View.GONE
+        }
     }
 }

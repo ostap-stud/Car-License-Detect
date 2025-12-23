@@ -2,4 +2,6 @@
     <string name="app_name">Car License Detect</string>
     <string name="title_home">Home</string>
     <string name="title_live">Live</string>
+    <string name="pick_image_and_perform_car_license_analysis">Pick image and perform Car-License Analysis</string>
+    <string name="no_detections_present">No detections present</string>
 </resources>
