@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_navigation_home_to_navigation_live"
             app:destination="@id/navigation_live" />
+        <action
+            android:id="@+id/action_navigation_home_to_navigation_details"
+            app:destination="@id/navigation_details" />
     </fragment>
 
     <fragment
@@ -20,5 +23,11 @@
         android:name="com.github.ostap_stud.ui.live.LiveCameraFragment"
         android:label="@string/title_live"
         tools:layout="@layout/fragment_live_camera" />
+
+    <fragment
+        android:id="@+id/navigation_details"
+        android:name="com.github.ostap_stud.ui.details.DetectionDetailsFragment"
+        android:label="Details"
+        tools:layout="@layout/fragment_detection_details" />
 
 </navigation>

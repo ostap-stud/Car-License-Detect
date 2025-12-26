@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    tools:context=".ui.details.DetectionDetailsFragment">
+
+
+    <ImageView
+        android:id="@+id/ivSource"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:contentDescription="@string/full_source_image"
+        android:src="@drawable/baseline_image_24" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvDetections"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="4dp"/>
+
+</LinearLayout>

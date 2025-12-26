@@ -1,6 +1,7 @@
 package com.github.ostap_stud.data
 
 import androidx.lifecycle.LiveData
+import com.github.ostap_stud.data.db.ApplicationDatabase
 import com.github.ostap_stud.data.db.DetectionEntity
 import com.github.ostap_stud.data.db.Image
 import com.github.ostap_stud.data.db.ImageDetection
@@ -16,5 +17,16 @@ class ImageDetectionRepository(
 
     suspend fun insertImageDetections(image: Image, detectionEntities: List<DetectionEntity>) =
         imageDetectionDAO.insertImageAndDetections(image, detectionEntities)
+
+    companion object{
+        private var INSTANCE: ImageDetectionRepository? = null
+        fun getRepository(database: ApplicationDatabase): ImageDetectionRepository{
+            return INSTANCE ?: synchronized(this){
+                val instance = ImageDetectionRepository(database.imageDetectionDao())
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
 
 }

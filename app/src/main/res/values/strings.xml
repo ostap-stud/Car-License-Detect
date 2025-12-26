@@ -7,4 +7,9 @@
     <string name="here_has_to_be_the_file_name_date">Here has to be the file name (date)</string>
     <string name="cars_0">Cars: 0</string>
     <string name="licenses_0">Licenses: 0</string>
+    
+    <string name="full_source_image">Full source image</string>
+    <string name="cropped_source_image_of_detection_box">Cropped source image of detection box</string>
+    <string name="detected_object_class">Detected object class</string>
+    <string name="additional_detection_text">Additional detection text</string>
 </resources>

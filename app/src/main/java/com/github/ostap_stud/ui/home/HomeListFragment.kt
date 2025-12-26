@@ -11,13 +11,18 @@ import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavDirections
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.github.ostap_stud.R
 import com.github.ostap_stud.analysis.CarLicenseDetector
 import com.github.ostap_stud.data.ImageDetectionRepository
 import com.github.ostap_stud.data.db.ApplicationDatabase
 import com.github.ostap_stud.databinding.FragmentHomeListBinding
+import com.github.ostap_stud.ui.details.DetectionDetailsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,11 +33,12 @@ class HomeListFragment : Fragment() {
 
     private val viewModel: HomeListViewModel by viewModels {
         HomeListViewModelFactory(
-            ImageDetectionRepository(
-                ApplicationDatabase.getDatabase(requireContext()).imageDetectionDao()
+            ImageDetectionRepository.getRepository(
+                ApplicationDatabase.getDatabase(requireContext())
             )
         )
     }
+    private val detailsViewModel: DetectionDetailsViewModel by activityViewModels()
     private lateinit var adapter: ImageDetectionListAdapter
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.PickVisualMedia()){ uri ->
@@ -54,9 +60,11 @@ class HomeListFragment : Fragment() {
         binding = FragmentHomeListBinding.inflate(inflater, container, false)
 
         adapter = ImageDetectionListAdapter(
-            viewModel.imageDetectionList.value ?: emptyList(),
-            { Toast.makeText(binding.root.context, "Clicked on image - ${it.image.createdAt}", Toast.LENGTH_SHORT).show() }
-        )
+            viewModel.imageDetectionList.value ?: emptyList()
+        ) {
+            detailsViewModel.imageDetection.value = it
+            findNavController().navigate(R.id.navigation_details)
+        }
 
         binding.apply {
             rvImageDetections.layoutManager = LinearLayoutManager(requireContext())
@@ -100,7 +108,7 @@ class HomeListFragment : Fragment() {
     private fun analyzeThenSave(uri: Uri) {
         viewModel.isProcessing.value = true
         viewLifecycleOwner.lifecycleScope.launch {
-            val imagePath = uri.path!!
+            val imagePath = uri.toString()
             val inputStream = requireContext().contentResolver.openInputStream(uri)
             val image = BitmapFactory.decodeStream(inputStream)
             inputStream?.close()
