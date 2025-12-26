@@ -1,22 +1,15 @@
 package com.github.ostap_stud.ui.details
 
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore.Images.Media
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.github.ostap_stud.R
 import com.github.ostap_stud.data.db.ImageDetection
 import com.github.ostap_stud.databinding.FragmentDetectionDetailsBinding
-import java.io.File
 
 
 class DetectionDetailsFragment : Fragment() {
@@ -44,12 +37,7 @@ class DetectionDetailsFragment : Fragment() {
     }
 
     private fun bind(imageDetection: ImageDetection) {
-        val inputStream = requireContext().contentResolver.openInputStream(
-            Uri.parse(imageDetection.image.imagePath)
-        )
-        val bitmap = BitmapFactory.decodeStream(inputStream)
-        inputStream?.close()
-
+        val bitmap = BitmapFactory.decodeFile(imageDetection.image.imagePath)
         binding.apply {
             ivSource.setImageBitmap(bitmap)
             adapter.submitAll(bitmap, imageDetection.detectionEntities)

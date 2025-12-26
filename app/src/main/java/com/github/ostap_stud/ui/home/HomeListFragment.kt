@@ -1,6 +1,6 @@
 package com.github.ostap_stud.ui.home
 
-import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
@@ -14,7 +14,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavDirections
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.ostap_stud.R
@@ -26,6 +25,8 @@ import com.github.ostap_stud.ui.details.DetectionDetailsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 
 class HomeListFragment : Fragment() {
 
@@ -43,9 +44,9 @@ class HomeListFragment : Fragment() {
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.PickVisualMedia()){ uri ->
         if (uri != null){
-            requireContext().contentResolver.takePersistableUriPermission(
+            /*requireContext().contentResolver.takePersistableUriPermission(
                 uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
+            )*/
             analyzeThenSave(uri)
         } else{
             Toast.makeText(requireContext(), "No image selected", Toast.LENGTH_SHORT).show()
@@ -108,13 +109,17 @@ class HomeListFragment : Fragment() {
     private fun analyzeThenSave(uri: Uri) {
         viewModel.isProcessing.value = true
         viewLifecycleOwner.lifecycleScope.launch {
-            val imagePath = uri.toString()
             val inputStream = requireContext().contentResolver.openInputStream(uri)
             val image = BitmapFactory.decodeStream(inputStream)
             inputStream?.close()
+
+            val localCopy = File(requireContext().filesDir, "image_${System.currentTimeMillis()}.jpeg")
+            val outputStream = FileOutputStream(localCopy)
+
             withContext(Dispatchers.IO){
+                image.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
                 CarLicenseDetector.process(image) { det, licDet, _ ->
-                    viewModel.insertImageDetections(imagePath, det, licDet)
+                    viewModel.insertImageDetections(localCopy.absolutePath, det, licDet)
                 }
             }
             viewModel.isProcessing.value = false
