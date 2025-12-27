@@ -44,9 +44,6 @@ class HomeListFragment : Fragment() {
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.PickVisualMedia()){ uri ->
         if (uri != null){
-            /*requireContext().contentResolver.takePersistableUriPermission(
-                uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )*/
             analyzeThenSave(uri)
         } else{
             Toast.makeText(requireContext(), "No image selected", Toast.LENGTH_SHORT).show()

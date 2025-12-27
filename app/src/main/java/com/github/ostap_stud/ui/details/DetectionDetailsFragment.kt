@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.github.ostap_stud.data.db.ImageDetection
 import com.github.ostap_stud.databinding.FragmentDetectionDetailsBinding
 
@@ -24,7 +24,7 @@ class DetectionDetailsFragment : Fragment() {
     ): View {
         binding = FragmentDetectionDetailsBinding.inflate(inflater, container, false)
         binding.apply {
-            rvDetections.layoutManager = LinearLayoutManager(requireContext())
+            rvDetections.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
             rvDetections.adapter = adapter
         }
         return binding.root
@@ -34,6 +34,7 @@ class DetectionDetailsFragment : Fragment() {
         viewModel.imageDetection.value?.let {
             bind(it)
         }
+        checkListEmptiness()
     }
 
     private fun bind(imageDetection: ImageDetection) {
@@ -41,6 +42,14 @@ class DetectionDetailsFragment : Fragment() {
         binding.apply {
             ivSource.setImageBitmap(bitmap)
             adapter.submitAll(bitmap, imageDetection.detectionEntities)
+        }
+    }
+
+    private fun checkListEmptiness(){
+        binding.tvEmptyDetections.visibility = if (adapter.itemCount == 0){
+            View.VISIBLE
+        } else{
+            View.GONE
         }
     }
 

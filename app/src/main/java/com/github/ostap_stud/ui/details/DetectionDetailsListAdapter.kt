@@ -2,10 +2,13 @@ package com.github.ostap_stud.ui.details
 
 import android.graphics.Bitmap
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.github.ostap_stud.data.db.DetectionEntity
 import com.github.ostap_stud.databinding.DetectionItemBinding
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class DetectionDetailsListAdapter(
     private var imageBitmap: Bitmap? = null,
@@ -17,12 +20,24 @@ class DetectionDetailsListAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(detection: DetectionEntity) = with(binding) {
-            tvClass.text = detection.cls
-            tvText.text = detection.text
-            tvX1.text = "x1: ${detection.x1}"
-            tvX2.text = "x2: ${detection.x2}"
-            tvY1.text = "y1: ${detection.y1}"
-            tvY2.text = "y2: ${detection.y2}"
+            tvClassAndConf.text = detection.cls.plus(
+                " (${(
+                        BigDecimal(detection.score.toDouble())
+                            .setScale(2, RoundingMode.HALF_EVEN)
+                            .toDouble() * 100
+                        ).toInt()}%)"
+            )
+            tvText.also {
+                if (detection.text.isNotBlank()){
+                    it.text = detection.text
+                } else {
+                    it.visibility = View.GONE
+                }
+            }
+            tvX1.text = "x1: ${BigDecimal(detection.x1.toDouble()).setScale(2, RoundingMode.HALF_EVEN)}"
+            tvX2.text = "x2: ${BigDecimal(detection.x2.toDouble()).setScale(2, RoundingMode.HALF_EVEN)}"
+            tvY1.text = "y1: ${BigDecimal(detection.y1.toDouble()).setScale(2, RoundingMode.HALF_EVEN)}"
+            tvY2.text = "y2: ${BigDecimal(detection.y2.toDouble()).setScale(2, RoundingMode.HALF_EVEN)}"
             val cropped = Bitmap.createBitmap(
                 imageBitmap!!, detection.x1.toInt(), detection.y1.toInt(),
                 (detection.x2 - detection.x1).toInt(), (detection.y2 - detection.y1).toInt()

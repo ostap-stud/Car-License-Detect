@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,18 +9,55 @@
     tools:context=".ui.details.DetectionDetailsFragment">
 
 
-    <ImageView
-        android:id="@+id/ivSource"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:contentDescription="@string/full_source_image"
-        android:src="@drawable/baseline_image_24" />
+    <androidx.cardview.widget.CardView
+        android:id="@+id/sourceCard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="5dp"
+        app:cardUseCompatPadding="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteY="922dp">
+
+        <ImageView
+            android:id="@+id/ivSource"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/full_source_image"
+            android:maxHeight="300dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/baseline_image_24" />
+    </androidx.cardview.widget.CardView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvDetections"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:padding="4dp"/>
+        android:layout_height="0dp"
+        android:clipToPadding="true"
+        android:padding="8dp"
+        android:requiresFadingEdge="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sourceCard"
+        tools:itemCount="5"
+        tools:layoutManager="androidx.recyclerview.widget.StaggeredGridLayoutManager"
+        tools:listitem="@layout/detection_item"
+        tools:orientation="vertical" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/tvEmptyDetections"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/nothing_detected"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        app:layout_constraintBottom_toBottomOf="@+id/rvDetections"
+        app:layout_constraintEnd_toEndOf="@+id/rvDetections"
+        app:layout_constraintStart_toStartOf="@+id/rvDetections"
+        app:layout_constraintTop_toTopOf="@id/rvDetections" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
