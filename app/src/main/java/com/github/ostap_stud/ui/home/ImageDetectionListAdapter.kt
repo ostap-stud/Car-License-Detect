@@ -1,6 +1,7 @@
 package com.github.ostap_stud.ui.home
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.github.ostap_stud.analysis.CarLicenseDetector
@@ -11,30 +12,52 @@ import java.util.Locale
 
 class ImageDetectionListAdapter(
     private var imageDetectionList: List<ImageDetection>,
+    private val itemLongClickManager: OnDetectionSelectManager,
+    private val isSelecting: Boolean,
+    private val currentSelectListeners: List<OnDetectionSelectListener>,
     private val onItemClicked: (ImageDetection) -> Unit
 ) : RecyclerView.Adapter<ImageDetectionListAdapter.ViewHolder>() {
 
     inner class ViewHolder(
         private val binding: ImageDetectionItemBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root), OnDetectionSelectListener {
 
         init {
-            binding.itemCard.setOnClickListener {
-                val position = adapterPosition
-                if (position != RecyclerView.NO_POSITION){
-                    onItemClicked(imageDetectionList[position])
+            itemLongClickManager.subscribe(this)
+            binding.itemCard.apply{
+                setOnClickListener {
+                    val position = adapterPosition
+                    if (position != RecyclerView.NO_POSITION){
+                        onItemClicked(imageDetectionList[position])
+                    }
+                }
+                setOnLongClickListener {
+                    itemLongClickManager.updateAllSelectionAbility(true)
+                    updateSelected(true)
+                    true
                 }
             }
         }
 
-        fun bind(item: ImageDetection){
-            binding.apply {
-                val carsNum = item.detectionEntities.filter { it.cls == CarLicenseDetector.LABELS[2] }.count()
-                val licNum = item.detectionEntities.filter { it.cls == CarLicenseDetector.LABELS[0] }.count()
-                val formattedDate = FORMATTER.format(item.image.createdAt)
-                tvFileName.text = formattedDate
-                tvCarsNum.text = "Cars: $carsNum"
-                tvLicNum.text = "Licenses: $licNum"
+        fun bind(item: ImageDetection) = with(binding){
+            val carsNum =
+                item.detectionEntities.count { it.cls == CarLicenseDetector.LABELS[2] }
+            val licNum = item.detectionEntities.count { it.cls == CarLicenseDetector.LABELS[0] }
+            val formattedDate = FORMATTER.format(item.image.createdAt)
+            tvFileName.text = formattedDate
+            tvCarsNum.text = "Cars: $carsNum"
+            tvLicNum.text = "Licenses: $licNum"
+        }
+
+        override fun isSelected() = binding.cbSelected.isChecked
+
+        override fun updateSelected(selected: Boolean) {
+            binding.cbSelected.isChecked = selected
+        }
+        
+        override fun updateSelectionAbility(selectable: Boolean) {
+            binding.cbSelected.apply {
+                visibility = if (selectable) View.VISIBLE else View.GONE
             }
         }
 
@@ -56,12 +79,22 @@ class ImageDetectionListAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(imageDetectionList[position])
+        if (isSelecting) {
+            holder.updateSelectionAbility(true)
+            if (currentSelectListeners[position].isSelected()) {
+                holder.updateSelected(true)
+            }
+        }
     }
 
     companion object{
-        val LOCALE = Locale.getDefault()
-        val PATTERN = "yyyy/MM/dd HH:mm:ss"
-        val FORMATTER = SimpleDateFormat(PATTERN, LOCALE)
+        val FORMATTER = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault())
     }
 
+}
+
+interface OnDetectionSelectListener{
+    fun updateSelectionAbility(selectable: Boolean)
+    fun updateSelected(selected: Boolean)
+    fun isSelected(): Boolean
 }

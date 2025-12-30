@@ -4,16 +4,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     tools:context=".ui.home.HomeListFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvImageDetections"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:itemCount="11"
+        tools:listitem="@layout/image_detection_item" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnImageAnalysis"
@@ -22,11 +27,28 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:clickable="true"
+        android:focusable="true"
         android:contentDescription="@string/pick_image_and_perform_car_license_analysis"
         android:src="@drawable/baseline_image_24"
         app:fabSize="auto"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toStartOf="@+id/btnDeleteSelected" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnDeleteSelected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:clickable="true"
+        android:contentDescription="@string/delete_all_checked_detections"
+        android:focusable="true"
+        android:src="@drawable/baseline_delete_24"
+        android:visibility="gone"
+        app:backgroundTint="?attr/colorError"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="?attr/colorOnError" />
 
     <TextView
         android:id="@+id/tvEmpty"

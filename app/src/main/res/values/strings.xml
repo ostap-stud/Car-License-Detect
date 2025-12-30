@@ -12,4 +12,7 @@
     <string name="detected_object_class_and_conf">Detected object class (and conf)</string>
     <string name="additional_detection_text">Detection additional text</string>
     <string name="nothing_detected">Nothing detected</string>
+    <string name="delete_all_checked_detections">Delete all checked detections</string>
+    <string name="select_all">Select All</string>
+    <string name="cancel_selection">Cancel Selection</string>
 </resources>

@@ -22,6 +22,10 @@ class HomeListViewModel(
 
     var imageDetectionList: LiveData<List<ImageDetection>> = imageDetectionRepository.getAllImageDetections()
 
+    val isSelecting: MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>(false) }
+
+    val detectionSelectListeners: MutableList<OnDetectionSelectListener> = mutableListOf()
+
     fun insertImageDetections(imagePath: String, detections: List<Detection>, licenseDetections: List<LicenseDetection>){
         viewModelScope.launch {
             val detectionEntities = mutableListOf<DetectionEntity>()
