@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.MenuProvider
 import androidx.core.view.forEach
 import androidx.core.view.isVisible
+import androidx.core.view.postDelayed
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -30,7 +31,9 @@ import com.github.ostap_stud.data.ImageDetectionRepository
 import com.github.ostap_stud.data.db.ApplicationDatabase
 import com.github.ostap_stud.databinding.FragmentHomeListBinding
 import com.github.ostap_stud.ui.details.DetectionDetailsViewModel
+import com.github.ostap_stud.ui.live.LiveCameraViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -48,11 +51,12 @@ class HomeListFragment : Fragment(), MenuProvider {
         )
     }
     private val detailsViewModel: DetectionDetailsViewModel by activityViewModels()
+    private val liveCameraViewModel: LiveCameraViewModel by activityViewModels()
     private lateinit var adapter: ImageDetectionListAdapter
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.PickVisualMedia()){ uri ->
         if (uri != null){
-            analyzeThenSave(uri)
+            analyzeByUriThenSave(uri)
         } else{
             Toast.makeText(requireContext(), "No image selected", Toast.LENGTH_SHORT).show()
         }
@@ -141,23 +145,43 @@ class HomeListFragment : Fragment(), MenuProvider {
         }
     }
 
-    private fun analyzeThenSave(uri: Uri) {
-        viewModel.isProcessing.value = true
-        viewLifecycleOwner.lifecycleScope.launch {
-            val inputStream = requireContext().contentResolver.openInputStream(uri)
-            val image = BitmapFactory.decodeStream(inputStream)
-            inputStream?.close()
+    override fun onResume() {
+        super.onResume()
+        binding.rvImageDetections.post {
+            analyzeCapturedThenSaved()
+        }
+    }
 
+    private fun analyzeByUriThenSave(uri: Uri) {
+        val inputStream = requireContext().contentResolver.openInputStream(uri)
+        val image = BitmapFactory.decodeStream(inputStream)
+        inputStream?.close()
+        viewLifecycleOwner.lifecycleScope.launch {
+            analyzeThenSave(image)
+        }
+    }
+
+    private fun analyzeCapturedThenSaved() {
+        liveCameraViewModel.capturedBitmap?.let {
+            viewLifecycleOwner.lifecycleScope.launch {
+                analyzeThenSave(it)
+                liveCameraViewModel.capturedBitmap = null
+                Toast.makeText(requireContext(), "Captured image is analyzed and saved", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private suspend fun analyzeThenSave(image: Bitmap) {
+        viewModel.isProcessing.value = true
+        withContext(Dispatchers.IO){
             val localCopy = File(requireContext().filesDir, "image_${System.currentTimeMillis()}.jpeg")
             val outputStream = FileOutputStream(localCopy)
+            image.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
 
-            withContext(Dispatchers.IO){
-                image.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-                CarLicenseDetector.process(image) { det, licDet, _ ->
-                    viewModel.insertImageDetections(localCopy.absolutePath, det, licDet)
-                }
+            CarLicenseDetector.process(image) { det, licDet, _ ->
+                viewModel.insertImageDetections(localCopy.absolutePath, det, licDet)
             }
-            viewModel.isProcessing.value = false
+            viewModel.isProcessing.postValue(false)
         }
     }
 

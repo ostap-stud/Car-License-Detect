@@ -12,14 +12,20 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCapture.OnImageCapturedCallback
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.github.ostap_stud.R
 import com.github.ostap_stud.analysis.CarLicenseImageAnalyzer
 import com.github.ostap_stud.analysis.Detection
+import com.github.ostap_stud.analysis.InputPreprocessor
 import com.github.ostap_stud.analysis.LicenseDetection
 import com.github.ostap_stud.databinding.FragmentLiveCameraBinding
 import java.util.concurrent.ExecutorService
@@ -39,7 +45,8 @@ class LiveCameraFragment : Fragment(), OnObjectsDetectListener {
     private lateinit var binding: FragmentLiveCameraBinding
 
     private lateinit var cameraExecutor: ExecutorService
-    private val viewModel: LiveCameraViewModel by viewModels()
+    private lateinit var imageCapture: ImageCapture
+    private val viewModel: LiveCameraViewModel by activityViewModels()
     private val navController by lazy { findNavController() }
 
     private val requestPermissionsLauncher: ActivityResultLauncher<Array<String>> = registerForActivityResult(
@@ -70,9 +77,33 @@ class LiveCameraFragment : Fragment(), OnObjectsDetectListener {
         super.onViewCreated(view, savedInstanceState)
         if (!allPermissionsGranted()){
             requestPermissionsLauncher.launch(REQUIRED_PREMISSIONS)
-        } else {
-            startCamera()
         }
+        startCamera()
+        binding.btnCapture.setOnClickListener {
+            imageCapture.takePicture(
+                ContextCompat.getMainExecutor(requireContext()),
+                object : OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        capturePhoto(image)
+                        Log.e(TAG, "Photo captured successfully!")
+                        cameraExecutor.shutdown()
+                        navController.navigate(R.id.navigation_home)
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        val msg = "Photo capturing error!"
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                        Log.e(TAG, msg)
+                    }
+                }
+            )
+        }
+    }
+
+    private fun capturePhoto(image: ImageProxy) {
+        viewModel.capturedBitmap = InputPreprocessor.rotateBitmap(
+            image.toBitmap(), image.imageInfo.rotationDegrees.toFloat()
+        )
     }
 
     override fun onDestroyView() {
@@ -98,11 +129,13 @@ class LiveCameraFragment : Fragment(), OnObjectsDetectListener {
                     it.setAnalyzer(cameraExecutor, imageAnalyzer)
                 }
 
+            imageCapture = ImageCapture.Builder().build()
+
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
             try {
                 provider.unbindAll()
-                provider.bindToLifecycle(this, cameraSelector, previewCase, imageAnalysis)
+                provider.bindToLifecycle(this, cameraSelector, previewCase, imageAnalysis, imageCapture)
                 previewCase.surfaceProvider = binding.cameraPreview.surfaceProvider
             } catch (e: Exception){
                 Log.e(TAG, "Camera provider failed to bind the use cases", e)

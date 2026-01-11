@@ -22,7 +22,11 @@
         android:id="@+id/navigation_live"
         android:name="com.github.ostap_stud.ui.live.LiveCameraFragment"
         android:label="@string/title_live"
-        tools:layout="@layout/fragment_live_camera" />
+        tools:layout="@layout/fragment_live_camera" >
+        <action
+            android:id="@+id/action_navigation_live_to_navigation_home"
+            app:destination="@id/navigation_home" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_details"
