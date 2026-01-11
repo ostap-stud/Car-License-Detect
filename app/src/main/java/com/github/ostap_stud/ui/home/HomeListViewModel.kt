@@ -5,26 +5,26 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.github.ostap_stud.data.ImageDetectionRepository
 import com.github.ostap_stud.analysis.Detection
 import com.github.ostap_stud.analysis.LicenseDetection
+import com.github.ostap_stud.data.ImageDetectionItem
+import com.github.ostap_stud.data.ImageDetectionRepository
 import com.github.ostap_stud.data.db.DetectionEntity
 import com.github.ostap_stud.data.db.Image
 import com.github.ostap_stud.data.db.ImageDetection
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Date
 
 class HomeListViewModel(
     private val imageDetectionRepository: ImageDetectionRepository
 ) : ViewModel() {
 
-    val isProcessing: MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>(false) }
-
+    var imageDetectionItems: MutableList<ImageDetectionItem> = mutableListOf()
     var imageDetectionList: LiveData<List<ImageDetection>> = imageDetectionRepository.getAllImageDetections()
 
+    val isProcessing: MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>(false) }
     val isSelecting: MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>(false) }
-
-    val detectionSelectListeners: MutableList<OnDetectionSelectListener> = mutableListOf()
 
     fun insertImageDetections(imagePath: String, detections: List<Detection>, licenseDetections: List<LicenseDetection>){
         viewModelScope.launch {
@@ -53,6 +53,22 @@ class HomeListViewModel(
             val image = Image(imagePath = imagePath, createdAt = Date())
             imageDetectionRepository.insertImageDetections(image, detectionEntities)
         }
+    }
+
+    fun deleteImageDetections(imageDetections: List<ImageDetection>) {
+        if (imageDetections.isNotEmpty()) {
+            viewModelScope.launch {
+                imageDetections.forEach {
+                    val localCopy = File(it.image.imagePath)
+                    localCopy.delete()
+                }
+                imageDetectionRepository.deleteImageDetections(imageDetections)
+            }
+        }
+    }
+
+    fun getSelectedDetections(): List<ImageDetection> {
+        return imageDetectionItems.filter { it.isSelected }.map { it.imageDetection }
     }
 
 }

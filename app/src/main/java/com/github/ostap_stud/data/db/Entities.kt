@@ -2,6 +2,7 @@ package com.github.ostap_stud.data.db
 
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import java.util.Date
@@ -23,7 +24,16 @@ data class ImageDetection(
     val detectionEntities: List<DetectionEntity>
 )
 
-@Entity
+@Entity(
+    foreignKeys = [
+        ForeignKey(
+            entity = Image::class,
+            parentColumns = ["id"],
+            childColumns = ["imageId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
 data class DetectionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

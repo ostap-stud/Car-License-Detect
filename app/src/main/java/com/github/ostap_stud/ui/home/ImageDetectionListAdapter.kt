@@ -3,68 +3,80 @@ package com.github.ostap_stud.ui.home
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.github.ostap_stud.analysis.CarLicenseDetector
-import com.github.ostap_stud.data.db.ImageDetection
+import com.github.ostap_stud.data.ImageDetectionItem
 import com.github.ostap_stud.databinding.ImageDetectionItemBinding
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 class ImageDetectionListAdapter(
-    private var imageDetectionList: List<ImageDetection>,
-    private val itemLongClickManager: OnDetectionSelectManager,
-    private val isSelecting: Boolean,
-    private val currentSelectListeners: List<OnDetectionSelectListener>,
-    private val onItemClicked: (ImageDetection) -> Unit
+    private var imageDetectionItems: MutableList<ImageDetectionItem>,
+    private val onItemClicked: (ImageDetectionItem) -> Unit,
+    private val onItemSelected: (position: Int, selected: Boolean) -> Unit
 ) : RecyclerView.Adapter<ImageDetectionListAdapter.ViewHolder>() {
 
     inner class ViewHolder(
-        private val binding: ImageDetectionItemBinding
-    ) : RecyclerView.ViewHolder(binding.root), OnDetectionSelectListener {
+        val binding: ImageDetectionItemBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         init {
-            itemLongClickManager.subscribe(this)
             binding.itemCard.apply{
                 setOnClickListener {
                     val position = adapterPosition
                     if (position != RecyclerView.NO_POSITION){
-                        onItemClicked(imageDetectionList[position])
+                        onItemClicked(imageDetectionItems[position])
                     }
                 }
                 setOnLongClickListener {
-                    itemLongClickManager.updateAllSelectionAbility(true)
-                    updateSelected(true)
+                    val position = adapterPosition
+                    setItemsSelectable(position)
+                    onItemSelected(position, true)
                     true
                 }
             }
         }
 
-        fun bind(item: ImageDetection) = with(binding){
+        fun bind(item: ImageDetectionItem) = with(binding){
+            val imageDetection = item.imageDetection
             val carsNum =
-                item.detectionEntities.count { it.cls == CarLicenseDetector.LABELS[2] }
-            val licNum = item.detectionEntities.count { it.cls == CarLicenseDetector.LABELS[0] }
-            val formattedDate = FORMATTER.format(item.image.createdAt)
+                imageDetection.detectionEntities.count { it.cls == CarLicenseDetector.LABELS[2] }
+            val licNum = imageDetection.detectionEntities.count { it.cls == CarLicenseDetector.LABELS[0] }
+            val formattedDate = FORMATTER.format(imageDetection.image.createdAt)
             tvFileName.text = formattedDate
             tvCarsNum.text = "Cars: $carsNum"
             tvLicNum.text = "Licenses: $licNum"
+            cbSelected.setOnCheckedChangeListener(null)
+            cbSelected.apply {
+                visibility = if (imageDetectionItems.any { it.isSelected }) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+                isChecked = item.isSelected
+            }
         }
 
-        override fun isSelected() = binding.cbSelected.isChecked
-
-        override fun updateSelected(selected: Boolean) {
-            binding.cbSelected.isChecked = selected
+        fun setItemSelection(pos: Int, selected: Boolean) {
+            imageDetectionItems[pos] = imageDetectionItems[pos].copy(
+                isSelected = selected
+            )
         }
-        
-        override fun updateSelectionAbility(selectable: Boolean) {
-            binding.cbSelected.apply {
-                visibility = if (selectable) View.VISIBLE else View.GONE
+
+        private fun setItemsSelectable(selectedPos: Int) {
+            setItemSelection(selectedPos, true)
+            if (binding.cbSelected.isVisible) {
+                notifyItemChanged(selectedPos)
+            } else {
+                notifyDataSetChanged()
             }
         }
 
     }
 
-    fun submitData(newData: List<ImageDetection>){
-        imageDetectionList = newData
+    fun submitData(newData: MutableList<ImageDetectionItem>){
+        imageDetectionItems = newData
         notifyDataSetChanged()
     }
 
@@ -74,27 +86,21 @@ class ImageDetectionListAdapter(
     }
 
     override fun getItemCount(): Int {
-        return imageDetectionList.size
+        return imageDetectionItems.size
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(imageDetectionList[position])
-        if (isSelecting) {
-            holder.updateSelectionAbility(true)
-            if (currentSelectListeners[position].isSelected()) {
-                holder.updateSelected(true)
-            }
+        holder.bind(imageDetectionItems[position])
+        holder.binding.cbSelected.setOnCheckedChangeListener { _, checked ->
+            holder.setItemSelection(position, checked)
+            onItemSelected(position, checked)
+            notifyItemChanged(position)
         }
+
     }
 
     companion object{
         val FORMATTER = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault())
     }
 
-}
-
-interface OnDetectionSelectListener{
-    fun updateSelectionAbility(selectable: Boolean)
-    fun updateSelected(selected: Boolean)
-    fun isSelected(): Boolean
 }

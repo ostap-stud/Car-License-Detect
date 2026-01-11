@@ -18,6 +18,10 @@ class ImageDetectionRepository(
     suspend fun insertImageDetections(image: Image, detectionEntities: List<DetectionEntity>) =
         imageDetectionDAO.insertImageAndDetections(image, detectionEntities)
 
+    suspend fun deleteImageDetections(imageDetections: List<ImageDetection>) {
+        imageDetections.map { it.image }.also { imageDetectionDAO.deleteImagesAndDetections(it) }
+    }
+
     companion object{
         private var INSTANCE: ImageDetectionRepository? = null
         fun getRepository(database: ApplicationDatabase): ImageDetectionRepository{

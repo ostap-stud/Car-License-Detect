@@ -25,6 +25,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.ostap_stud.R
 import com.github.ostap_stud.analysis.CarLicenseDetector
+import com.github.ostap_stud.data.ImageDetectionItem
 import com.github.ostap_stud.data.ImageDetectionRepository
 import com.github.ostap_stud.data.db.ApplicationDatabase
 import com.github.ostap_stud.databinding.FragmentHomeListBinding
@@ -35,7 +36,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
-class HomeListFragment : Fragment(), OnDetectionSelectManager, MenuProvider {
+class HomeListFragment : Fragment(), MenuProvider {
 
     private lateinit var binding: FragmentHomeListBinding
 
@@ -46,7 +47,6 @@ class HomeListFragment : Fragment(), OnDetectionSelectManager, MenuProvider {
             )
         )
     }
-    private var currentSelectListeners: List<OnDetectionSelectListener> = listOf()
     private val detailsViewModel: DetectionDetailsViewModel by activityViewModels()
     private lateinit var adapter: ImageDetectionListAdapter
 
@@ -67,18 +67,21 @@ class HomeListFragment : Fragment(), OnDetectionSelectManager, MenuProvider {
 
         requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
-        currentSelectListeners = viewModel.detectionSelectListeners.toList()
-        viewModel.detectionSelectListeners.clear()
-
         adapter = ImageDetectionListAdapter(
-            viewModel.imageDetectionList.value ?: emptyList(),
-            this,
-            viewModel.isSelecting.value ?: false,
-            currentSelectListeners
-        ) {
-            detailsViewModel.imageDetection.value = it
-            findNavController().navigate(R.id.navigation_details)
-        }
+            imageDetectionItems = viewModel.imageDetectionItems,
+            onItemClicked = {
+                detailsViewModel.imageDetection.value = it.imageDetection
+                findNavController().navigate(R.id.navigation_details)
+            },
+            onItemSelected = { pos, selected ->
+                viewModel.apply {
+                    isSelecting.value = true
+                    imageDetectionItems[pos] = imageDetectionItems[pos].copy(
+                        isSelected = selected
+                    )
+                }
+            }
+        )
 
         binding.apply {
             rvImageDetections.layoutManager = LinearLayoutManager(requireContext())
@@ -86,6 +89,12 @@ class HomeListFragment : Fragment(), OnDetectionSelectManager, MenuProvider {
 
             btnImageAnalysis.setOnClickListener {
                 pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }
+
+            btnDeleteSelected.setOnClickListener {
+                val selectedDetections = viewModel.getSelectedDetections()
+                viewModel.deleteImageDetections(selectedDetections)
+                viewModel.isSelecting.value = false
             }
         }
 
@@ -97,20 +106,26 @@ class HomeListFragment : Fragment(), OnDetectionSelectManager, MenuProvider {
         super.onViewCreated(view, savedInstanceState)
         viewModel.apply {
             imageDetectionList.observe(viewLifecycleOwner) {
-                viewModel.isProcessing.value = true
-                adapter.submitData(it)
-                viewModel.isProcessing.value = false
+                isProcessing.value = true
+                if (it.size != imageDetectionItems.size) {
+                    imageDetectionItems = it.map { imageDetection ->
+                        ImageDetectionItem(
+                            imageDetection = imageDetection,
+                            isSelected = false
+                        )
+                    }.toMutableList()
+                }
+                adapter.submitData(imageDetectionItems)
+                isProcessing.value = false
             }
             isProcessing.observe(viewLifecycleOwner) { isProcessing ->
-                if (isProcessing){
-                    binding.apply {
+                binding.apply {
+                    if (isProcessing){
                         pbProcessing.visibility = View.VISIBLE
                         btnImageAnalysis.visibility = View.GONE
                         tvEmpty.visibility = View.GONE
                         rvImageDetections.visibility = View.INVISIBLE
-                    }
-                } else{
-                    binding.apply {
+                    } else{
                         pbProcessing.visibility = View.GONE
                         btnImageAnalysis.visibility = View.VISIBLE
                         rvImageDetections.visibility = View.VISIBLE
@@ -154,21 +169,16 @@ class HomeListFragment : Fragment(), OnDetectionSelectManager, MenuProvider {
         }
     }
 
-    override fun subscribe(listener: OnDetectionSelectListener) {
-        viewModel.detectionSelectListeners.add(listener)
-    }
-
-    override fun updateAllSelectionAbility(selectable: Boolean) {
-        if (viewModel.detectionSelectListeners.count { it.isSelected() } == 0 && selectable) {
-            viewModel.isSelecting.value = true
-        } else if (!selectable) {
-            viewModel.isSelecting.value = false
-        }
-        viewModel.detectionSelectListeners.forEach { it.updateSelectionAbility(selectable) }
-    }
-    
-    override fun updateAllSelected(selected: Boolean) {
-        viewModel.detectionSelectListeners.forEach { it.updateSelected(selected) }
+    private fun setAllSelection(selected: Boolean) {
+        val imageDetectionItemsCopy = viewModel.imageDetectionItems.map {
+            var itemCopy = it
+            if (itemCopy.isSelected != selected) {
+                itemCopy = it.copy(isSelected = selected)
+            }
+            itemCopy
+        }.toMutableList()
+        viewModel.imageDetectionItems = imageDetectionItemsCopy
+        adapter.submitData(imageDetectionItemsCopy)
     }
 
     override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -185,21 +195,15 @@ class HomeListFragment : Fragment(), OnDetectionSelectManager, MenuProvider {
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
         return when(menuItem.itemId) {
             R.id.select_all -> {
-                updateAllSelected(true)
+                setAllSelection(true)
                 true
             }
             R.id.cancel_selection -> {
-                updateAllSelected(false)
-                updateAllSelectionAbility(false)
+                setAllSelection(false)
+                viewModel.isSelecting.value = false
                 true
             }
             else -> false
         }
     }
-}
-
-interface OnDetectionSelectManager{
-    fun subscribe(listener: OnDetectionSelectListener)
-    fun updateAllSelectionAbility(selectable: Boolean)
-    fun updateAllSelected(selected: Boolean)
 }

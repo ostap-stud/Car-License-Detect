@@ -2,6 +2,7 @@ package com.github.ostap_stud.data.db
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
@@ -31,5 +32,8 @@ interface ImageDetectionDAO {
         }
         insertDetections(imageDetections)
     }
+
+    @Delete
+    suspend fun deleteImagesAndDetections(images: List<Image>)
 
 }
