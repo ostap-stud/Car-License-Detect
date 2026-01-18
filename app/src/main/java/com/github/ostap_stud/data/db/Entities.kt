@@ -5,16 +5,21 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.github.ostap_stud.util.DateSerializer
+import kotlinx.serialization.Serializable
 import java.util.Date
 
 @Entity
+@Serializable
 data class Image(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val imagePath: String,
+    @Serializable(with = DateSerializer::class)
     val createdAt: Date
 )
 
+@Serializable
 data class ImageDetection(
     @Embedded val image: Image,
     @Relation(
@@ -34,6 +39,7 @@ data class ImageDetection(
         )
     ]
 )
+@Serializable
 data class DetectionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

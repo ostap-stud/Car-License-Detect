@@ -1,5 +1,7 @@
 package com.github.ostap_stud.ui.home
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,7 +14,10 @@ import com.github.ostap_stud.data.ImageDetectionRepository
 import com.github.ostap_stud.data.db.DetectionEntity
 import com.github.ostap_stud.data.db.Image
 import com.github.ostap_stud.data.db.ImageDetection
+import com.github.ostap_stud.util.ZipExporter
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.Date
 
@@ -25,6 +30,7 @@ class HomeListViewModel(
 
     val isProcessing: MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>(false) }
     val isSelecting: MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>(false) }
+    val exportStatus: MutableLiveData<Boolean> by lazy { MutableLiveData<Boolean>(null) }
 
     fun insertImageDetections(imagePath: String, detections: List<Detection>, licenseDetections: List<LicenseDetection>){
         viewModelScope.launch {
@@ -69,6 +75,23 @@ class HomeListViewModel(
 
     fun getSelectedDetections(): List<ImageDetection> {
         return imageDetectionItems.filter { it.isSelected }.map { it.imageDetection }
+    }
+
+    fun exportDetections(context: Context, exportUri: Uri) {
+        isProcessing.value = true
+        viewModelScope.launch {
+            val imagePaths = imageDetectionList.value?.map { it.image.imagePath }
+            val encodedDetections = Json.encodeToString(imageDetectionList.value)
+            val isSuccess = ZipExporter.export(
+                context = context,
+                exportFileUri = exportUri,
+                dataPaths = imagePaths?.toSet(),
+                data = mapOf("image_detections.json" to encodedDetections.toByteArray())
+            )
+            exportStatus.value = isSuccess
+            isProcessing.value = false
+            exportStatus.value = null
+        }
     }
 
 }
