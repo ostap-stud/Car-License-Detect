@@ -54,7 +54,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/nothing_detected"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textAppearance="@android:style/TextAppearance.Material.Large"
         app:layout_constraintBottom_toBottomOf="@+id/rvDetections"
         app:layout_constraintEnd_toEndOf="@+id/rvDetections"
         app:layout_constraintStart_toStartOf="@+id/rvDetections"

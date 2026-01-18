@@ -16,7 +16,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.MenuProvider
 import androidx.core.view.forEach
 import androidx.core.view.isVisible
-import androidx.core.view.postDelayed
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -33,7 +32,6 @@ import com.github.ostap_stud.databinding.FragmentHomeListBinding
 import com.github.ostap_stud.ui.details.DetectionDetailsViewModel
 import com.github.ostap_stud.ui.live.LiveCameraViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -59,6 +57,16 @@ class HomeListFragment : Fragment(), MenuProvider {
             analyzeByUriThenSave(uri)
         } else{
             Toast.makeText(requireContext(), "No image selected", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val exportLocate = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        if (uri != null){
+            viewModel.exportDetections(requireContext(), uri)
+        } else{
+            Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -95,6 +103,10 @@ class HomeListFragment : Fragment(), MenuProvider {
                 pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }
 
+            btnExport.setOnClickListener {
+                exportLocate.launch("car-license-detections.zip")
+            }
+
             btnDeleteSelected.setOnClickListener {
                 val selectedDetections = viewModel.getSelectedDetections()
                 viewModel.deleteImageDetections(selectedDetections)
@@ -117,7 +129,7 @@ class HomeListFragment : Fragment(), MenuProvider {
                             imageDetection = imageDetection,
                             isSelected = false
                         )
-                    }.toMutableList()
+                    }.reversed().toMutableList()
                 }
                 adapter.submitData(imageDetectionItems)
                 isProcessing.value = false
@@ -127,11 +139,13 @@ class HomeListFragment : Fragment(), MenuProvider {
                     if (isProcessing){
                         pbProcessing.visibility = View.VISIBLE
                         btnImageAnalysis.visibility = View.GONE
+                        btnExport.visibility = View.GONE
                         tvEmpty.visibility = View.GONE
                         rvImageDetections.visibility = View.INVISIBLE
                     } else{
                         pbProcessing.visibility = View.GONE
                         btnImageAnalysis.visibility = View.VISIBLE
+                        btnExport.visibility = View.VISIBLE
                         rvImageDetections.visibility = View.VISIBLE
                         checkListEmptiness()
                     }
@@ -140,7 +154,15 @@ class HomeListFragment : Fragment(), MenuProvider {
             isSelecting.observe(viewLifecycleOwner) { isSelecting ->
                 binding.btnDeleteSelected.isVisible = isSelecting
                 binding.btnImageAnalysis.isVisible = !isSelecting
+                binding.btnExport.isVisible = !isSelecting
                 requireActivity().invalidateMenu()
+            }
+            exportStatus.observe(viewLifecycleOwner) { status ->
+                when(status) {
+                    true -> Toast.makeText(context, "Successfully exported!", Toast.LENGTH_SHORT).show()
+                    false -> Toast.makeText(context, "Something went wrong", Toast.LENGTH_SHORT).show()
+                    else -> {}
+                }
             }
         }
     }

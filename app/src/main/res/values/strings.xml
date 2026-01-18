@@ -16,4 +16,5 @@
     <string name="select_all">Select All</string>
     <string name="cancel_selection">Cancel Selection</string>
     <string name="image_capture">Image capture</string>
+    <string name="export_data_in_zip">Export data in .zip</string>
 </resources>

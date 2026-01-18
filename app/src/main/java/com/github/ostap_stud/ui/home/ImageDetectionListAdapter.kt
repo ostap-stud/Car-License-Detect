@@ -8,8 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.github.ostap_stud.analysis.CarLicenseDetector
 import com.github.ostap_stud.data.ImageDetectionItem
 import com.github.ostap_stud.databinding.ImageDetectionItemBinding
-import java.text.SimpleDateFormat
-import java.util.Locale
+import com.github.ostap_stud.util.DateSerializer
 
 class ImageDetectionListAdapter(
     private var imageDetectionItems: MutableList<ImageDetectionItem>,
@@ -43,7 +42,7 @@ class ImageDetectionListAdapter(
             val carsNum =
                 imageDetection.detectionEntities.count { it.cls == CarLicenseDetector.LABELS[2] }
             val licNum = imageDetection.detectionEntities.count { it.cls == CarLicenseDetector.LABELS[0] }
-            val formattedDate = FORMATTER.format(imageDetection.image.createdAt)
+            val formattedDate = DateSerializer.formatter.format(imageDetection.image.createdAt)
             tvFileName.text = formattedDate
             tvCarsNum.text = "Cars: $carsNum"
             tvLicNum.text = "Licenses: $licNum"
@@ -97,10 +96,6 @@ class ImageDetectionListAdapter(
             notifyItemChanged(position)
         }
 
-    }
-
-    companion object{
-        val FORMATTER = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault())
     }
 
 }
